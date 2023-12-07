@@ -1,0 +1,40 @@
+erDiagram
+  client-profile ||--|{ Account : owns
+  Account ||--|{ Posting : contains
+  Posting ||--|{ Purpose : relates
+  client-profile {
+    UUID id PK "Account ID from Auth service"
+    ENUM adm "NOT NULL. From ADMINISTRATIVE_STATUS"
+    ENUM kyc "NOT NULL. From KYC_STATUS"
+    VARCHAR_15 name "NOT NULL. Client first name"
+    VARCHAR_30 surname "NOT NULL. Client second name"
+    TIMESTAMP updated "NOT NULL"
+    TIMESTAMP created "NOT NULL"
+  }
+  Account {
+    UUID account PK "Account ID from DynamoDB"
+    UUID client FK "references Client(id)"
+    INT holder FK "references Holder(id)"
+    ENUM status "NOT NULL. From ACCOUNT_STATUS"
+    CHAR_3 currency "NOT NULL. ISO currency code"
+    TIMESTAMP created "NOT NULL. AS :: 1999-01-08 04:05:06"
+  }
+  Purpose {
+    INT id PK "Auto incremented"
+    VARCHAR_10 code "NOT NULL. Purpose code"
+    VARCHAR_30 group "NOT NULL. Purpose group"
+    VARCHAR_30 title "NOT NULL. Purpose definition"
+    TEXT description "NOT NULL. Purpose explanation"
+    TIMESTAMP created "NOT NULL. AS :: 1999-01-08 04:05:06"
+  }
+  Posting {
+    INT id PK "Auto incremented"
+    UUID account FK "NOT NULL. references Account(id)"
+    INT register FK "NOT NULL. references Register(id)"
+    INT purpose FK "NOT NULL. references Purpose(id)"
+    UUID transfer "NOT NULL. Transfer ID from DynamoDB"
+    ENUM status "NOT NULL. From POSTING_STATUS"
+    NUMERIC amount "NOT NULL. AS :: (12.2)"
+    TIMESTAMP created "NOT NULL. AS :: 1999-01-08 04:05:06"
+  }
+  
