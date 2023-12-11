@@ -1,0 +1,3 @@
+ALTER TABLE client.profile ADD COLUMN password VARCHAR NOT NULL DEFAULT 'secret';
+ALTER TABLE client.profile ADD COLUMN email VARCHAR UNIQUE NOT NULL DEFAULT 'undefined';
+ALTER TABLE client.profile ADD COLUMN password_updated TIMESTAMPTZ  NOT NULL DEFAULT '0001-01-01 00:00:00Z';
