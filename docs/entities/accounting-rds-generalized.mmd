@@ -10,6 +10,9 @@ erDiagram
     VARCHAR_30 surname "NOT NULL. Client second name"
     TIMESTAMP updated "NOT NULL"
     TIMESTAMP created "NOT NULL"
+    VARCHAR password "NOT NULL. DEFAULT secret"
+    VARCHAR email "UNIQUE NOT NULL"
+    TIMESTAMP password_updated "NOT NULL DEFAULT 0001-01-01 00:00:00Z"
   }
   Account {
     UUID account PK "Account ID from DynamoDB"

@@ -12,8 +12,13 @@ import (
 
 type Querier interface {
 	CreateClientProfile(ctx context.Context, arg CreateClientProfileParams) (uuid.UUID, error)
-	DeleteCreateClientProfile(ctx context.Context, id uuid.UUID) error
+	DeleteClientProfile(ctx context.Context, id uuid.UUID) error
+	GetClientPasswordByEmail(ctx context.Context, email string) (GetClientPasswordByEmailRow, error)
+	GetClientPasswordById(ctx context.Context, id uuid.UUID) (GetClientPasswordByIdRow, error)
 	GetClientProfile(ctx context.Context, id uuid.UUID) (ClientProfile, error)
+	UpdateClientPassword(ctx context.Context, arg UpdateClientPasswordParams) error
+	UpdateClientProfile(ctx context.Context, arg UpdateClientProfileParams) error
+	UpdateClientStatus(ctx context.Context, arg UpdateClientStatusParams) error
 }
 
 var _ Querier = (*Queries)(nil)

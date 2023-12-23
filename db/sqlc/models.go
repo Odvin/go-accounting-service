@@ -108,9 +108,12 @@ type ClientProfile struct {
 	// Client status set by the system admin
 	Adm AdministrativeStatus `json:"adm"`
 	// Client status from security service (Know Your Client)
-	Kyc     KycStatus `json:"kyc"`
-	Name    string    `json:"name"`
-	Surname string    `json:"surname"`
-	Updated time.Time `json:"updated"`
-	Created time.Time `json:"created"`
+	Kyc             KycStatus `json:"kyc"`
+	Name            string    `json:"name"`
+	Surname         string    `json:"surname"`
+	Updated         time.Time `json:"updated"`
+	Created         time.Time `json:"created"`
+	Password        string    `json:"password"`
+	Email           string    `json:"email"`
+	PasswordUpdated time.Time `json:"password_updated"`
 }
