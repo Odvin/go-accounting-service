@@ -142,7 +142,6 @@ func TestUpdateClientProfileName(t *testing.T) {
 	require.Equal(t, arg.Surname, clientProfile.Surname)
 	require.Equal(t, arg.Email, clientProfile.Email)
 	require.WithinDuration(t, clientProfile.Updated, time.Now(), time.Minute)
-
 }
 
 func TestUpdateClientProfileSurname(t *testing.T) {
@@ -172,7 +171,6 @@ func TestUpdateClientProfileSurname(t *testing.T) {
 	require.Equal(t, newArg.Surname, clientProfile.Surname)
 	require.Equal(t, arg.Email, clientProfile.Email)
 	require.WithinDuration(t, clientProfile.Updated, time.Now(), time.Minute)
-
 }
 
 func TestUpdateClientProfileEmail(t *testing.T) {
