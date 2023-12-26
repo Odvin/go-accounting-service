@@ -55,18 +55,33 @@ func (mr *MockStoreMockRecorder) CreateClientProfile(arg0, arg1 any) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateClientProfile", reflect.TypeOf((*MockStore)(nil).CreateClientProfile), arg0, arg1)
 }
 
-// DeleteCreateClientProfile mocks base method.
-func (m *MockStore) DeleteCreateClientProfile(arg0 context.Context, arg1 uuid.UUID) error {
+// DeleteClientProfile mocks base method.
+func (m *MockStore) DeleteClientProfile(arg0 context.Context, arg1 uuid.UUID) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteCreateClientProfile", arg0, arg1)
+	ret := m.ctrl.Call(m, "DeleteClientProfile", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// DeleteCreateClientProfile indicates an expected call of DeleteCreateClientProfile.
-func (mr *MockStoreMockRecorder) DeleteCreateClientProfile(arg0, arg1 any) *gomock.Call {
+// DeleteClientProfile indicates an expected call of DeleteClientProfile.
+func (mr *MockStoreMockRecorder) DeleteClientProfile(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCreateClientProfile", reflect.TypeOf((*MockStore)(nil).DeleteCreateClientProfile), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteClientProfile", reflect.TypeOf((*MockStore)(nil).DeleteClientProfile), arg0, arg1)
+}
+
+// GetClientPasswordById mocks base method.
+func (m *MockStore) GetClientPasswordById(arg0 context.Context, arg1 uuid.UUID) (db.GetClientPasswordByIdRow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetClientPasswordById", arg0, arg1)
+	ret0, _ := ret[0].(db.GetClientPasswordByIdRow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetClientPasswordById indicates an expected call of GetClientPasswordById.
+func (mr *MockStoreMockRecorder) GetClientPasswordById(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClientPasswordById", reflect.TypeOf((*MockStore)(nil).GetClientPasswordById), arg0, arg1)
 }
 
 // GetClientProfile mocks base method.
@@ -82,4 +97,61 @@ func (m *MockStore) GetClientProfile(arg0 context.Context, arg1 uuid.UUID) (db.C
 func (mr *MockStoreMockRecorder) GetClientProfile(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClientProfile", reflect.TypeOf((*MockStore)(nil).GetClientProfile), arg0, arg1)
+}
+
+// GetClientProfileByEmail mocks base method.
+func (m *MockStore) GetClientProfileByEmail(arg0 context.Context, arg1 string) (db.ClientProfile, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetClientProfileByEmail", arg0, arg1)
+	ret0, _ := ret[0].(db.ClientProfile)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetClientProfileByEmail indicates an expected call of GetClientProfileByEmail.
+func (mr *MockStoreMockRecorder) GetClientProfileByEmail(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClientProfileByEmail", reflect.TypeOf((*MockStore)(nil).GetClientProfileByEmail), arg0, arg1)
+}
+
+// UpdateClientPassword mocks base method.
+func (m *MockStore) UpdateClientPassword(arg0 context.Context, arg1 db.UpdateClientPasswordParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateClientPassword", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateClientPassword indicates an expected call of UpdateClientPassword.
+func (mr *MockStoreMockRecorder) UpdateClientPassword(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateClientPassword", reflect.TypeOf((*MockStore)(nil).UpdateClientPassword), arg0, arg1)
+}
+
+// UpdateClientProfile mocks base method.
+func (m *MockStore) UpdateClientProfile(arg0 context.Context, arg1 db.UpdateClientProfileParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateClientProfile", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateClientProfile indicates an expected call of UpdateClientProfile.
+func (mr *MockStoreMockRecorder) UpdateClientProfile(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateClientProfile", reflect.TypeOf((*MockStore)(nil).UpdateClientProfile), arg0, arg1)
+}
+
+// UpdateClientStatus mocks base method.
+func (m *MockStore) UpdateClientStatus(arg0 context.Context, arg1 db.UpdateClientStatusParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateClientStatus", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateClientStatus indicates an expected call of UpdateClientStatus.
+func (mr *MockStoreMockRecorder) UpdateClientStatus(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateClientStatus", reflect.TypeOf((*MockStore)(nil).UpdateClientStatus), arg0, arg1)
 }

@@ -20,8 +20,8 @@ WHERE id = $1 LIMIT 1;
 DELETE FROM client.profile
 WHERE id = $1;
 
--- name: GetClientPasswordByEmail :one
-SELECT password, password_updated FROM client.profile
+-- name: GetClientProfileByEmail :one
+SELECT * FROM client.profile
 WHERE email = $1 LIMIT 1;
 
 -- name: GetClientPasswordById :one

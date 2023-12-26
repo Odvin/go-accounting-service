@@ -62,23 +62,6 @@ func (q *Queries) DeleteClientProfile(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
-const getClientPasswordByEmail = `-- name: GetClientPasswordByEmail :one
-SELECT password, password_updated FROM client.profile
-WHERE email = $1 LIMIT 1
-`
-
-type GetClientPasswordByEmailRow struct {
-	Password        string    `json:"password"`
-	PasswordUpdated time.Time `json:"password_updated"`
-}
-
-func (q *Queries) GetClientPasswordByEmail(ctx context.Context, email string) (GetClientPasswordByEmailRow, error) {
-	row := q.db.QueryRow(ctx, getClientPasswordByEmail, email)
-	var i GetClientPasswordByEmailRow
-	err := row.Scan(&i.Password, &i.PasswordUpdated)
-	return i, err
-}
-
 const getClientPasswordById = `-- name: GetClientPasswordById :one
 SELECT password, password_updated FROM client.profile
 WHERE id = $1 LIMIT 1
@@ -103,6 +86,29 @@ WHERE id = $1 LIMIT 1
 
 func (q *Queries) GetClientProfile(ctx context.Context, id uuid.UUID) (ClientProfile, error) {
 	row := q.db.QueryRow(ctx, getClientProfile, id)
+	var i ClientProfile
+	err := row.Scan(
+		&i.ID,
+		&i.Adm,
+		&i.Kyc,
+		&i.Name,
+		&i.Surname,
+		&i.Updated,
+		&i.Created,
+		&i.Password,
+		&i.Email,
+		&i.PasswordUpdated,
+	)
+	return i, err
+}
+
+const getClientProfileByEmail = `-- name: GetClientProfileByEmail :one
+SELECT id, adm, kyc, name, surname, updated, created, password, email, password_updated FROM client.profile
+WHERE email = $1 LIMIT 1
+`
+
+func (q *Queries) GetClientProfileByEmail(ctx context.Context, email string) (ClientProfile, error) {
+	row := q.db.QueryRow(ctx, getClientProfileByEmail, email)
 	var i ClientProfile
 	err := row.Scan(
 		&i.ID,

@@ -84,7 +84,7 @@ func TestDeleteClientProfile(t *testing.T) {
 	require.Empty(t, clientProfile)
 }
 
-func TestGetClientPasswordByEmail(t *testing.T) {
+func TestGetClientProfileByEmail(t *testing.T) {
 	arg, password := createClientProfileParams(t)
 
 	id, err := testStore.CreateClientProfile(context.Background(), arg)
@@ -92,11 +92,25 @@ func TestGetClientPasswordByEmail(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, id)
 
-	clientPassword, err := testStore.GetClientPasswordByEmail(context.Background(), arg.Email)
+	clientProfile, err := testStore.GetClientProfileByEmail(context.Background(), arg.Email)
 	require.NoError(t, err)
-	require.NotEmpty(t, clientPassword)
+	require.NotEmpty(t, clientProfile)
 
-	err = util.CheckPassword(password, clientPassword.Password)
+	require.NotZero(t, clientProfile.Created)
+	require.NotZero(t, clientProfile.Updated)
+	require.NotZero(t, clientProfile.PasswordUpdated)
+
+	require.Equal(t, id, clientProfile.ID)
+
+	require.WithinDuration(t, clientProfile.Created, clientProfile.Updated, time.Second)
+
+	require.Equal(t, arg.Adm, clientProfile.Adm)
+	require.Equal(t, arg.Kyc, clientProfile.Kyc)
+	require.Equal(t, arg.Name, clientProfile.Name)
+	require.Equal(t, arg.Surname, clientProfile.Surname)
+	require.Equal(t, arg.Email, clientProfile.Email)
+
+	err = util.CheckPassword(password, clientProfile.Password)
 	require.NoError(t, err)
 }
 

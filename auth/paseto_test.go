@@ -13,7 +13,7 @@ func TestCreatePasetoAuditor(t *testing.T) {
 	auditor, err := CreatePasetoAuditor(util.RandomString(32))
 	require.NoError(t, err)
 
-	sub := uuid.NewString()
+	sub := uuid.New()
 	role := util.DepositorRole
 	duration := time.Minute
 
@@ -40,7 +40,7 @@ func TestExpiredPasetoToken(t *testing.T) {
 	auditor, err := CreatePasetoAuditor(util.RandomString(32))
 	require.NoError(t, err)
 
-	token, payload, err := auditor.CreateToken(uuid.NewString(), util.DepositorRole, -time.Minute)
+	token, payload, err := auditor.CreateToken(uuid.New(), util.DepositorRole, -time.Minute)
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 	require.NotEmpty(t, payload)

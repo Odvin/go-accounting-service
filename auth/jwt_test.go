@@ -14,7 +14,7 @@ func TestCreateJWTAuditor(t *testing.T) {
 	auditor, err := CreateJWTAuditor(util.RandomString(32))
 	require.NoError(t, err)
 
-	sub := uuid.NewString()
+	sub := uuid.New()
 	role := util.DepositorRole
 	duration := time.Minute
 
@@ -41,7 +41,7 @@ func TestExpiredJWTToken(t *testing.T) {
 	auditor, err := CreateJWTAuditor(util.RandomString(32))
 	require.NoError(t, err)
 
-	token, payload, err := auditor.CreateToken(uuid.NewString(), util.DepositorRole, -time.Minute)
+	token, payload, err := auditor.CreateToken(uuid.New(), util.DepositorRole, -time.Minute)
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 	require.NotEmpty(t, payload)
@@ -53,7 +53,7 @@ func TestExpiredJWTToken(t *testing.T) {
 }
 
 func TestInvalidJWTToken(t *testing.T) {
-	payload, err := CreatePayload(uuid.NewString(), util.DepositorRole, time.Minute)
+	payload, err := CreatePayload(uuid.New(), util.DepositorRole, time.Minute)
 	require.NoError(t, err)
 
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodNone, payload)

@@ -16,14 +16,14 @@ var (
 // Payload contains the payload data of the token
 type Payload struct {
 	ID      uuid.UUID `json:"id"`
-	Sub     string    `json:"sub"`
+	Sub     uuid.UUID `json:"sub"`
 	Role    string    `json:"role"`
 	Issued  time.Time `json:"issued"`
 	Expired time.Time `json:"expired"`
 }
 
 // CreatePayload creates a new token payload with a specific username and duration
-func CreatePayload(sub string, role string, duration time.Duration) (*Payload, error) {
+func CreatePayload(sub uuid.UUID, role string, duration time.Duration) (*Payload, error) {
 	tokenID := uuid.New()
 
 	payload := &Payload{

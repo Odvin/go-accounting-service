@@ -1,28 +1,47 @@
 package api
 
 import (
+	"fmt"
+
+	"github.com/Odvin/go-accounting-service/auth"
 	db "github.com/Odvin/go-accounting-service/db/sqlc"
+	"github.com/Odvin/go-accounting-service/util"
 	"github.com/gin-gonic/gin"
 )
 
 // Server serves HTTP request for accounting service
 
 type Server struct {
-	store  db.Store
-	router *gin.Engine
+	config  util.Config
+	auditor auth.Authenticator
+	store   db.Store
+	router  *gin.Engine
 }
 
-// Creates new HTTP Server and setup routings
-func NewServer(store db.Store) *Server {
-	server := &Server{store: store}
+func NewServer(config util.Config, store db.Store) (*Server, error) {
 
+	auditor, err := auth.CreatePasetoAuditor(config.TokenSymmetricKey)
+	if err != nil {
+		return nil, fmt.Errorf("cannot create token maker: %w", err)
+	}
+
+	server := &Server{config: config, store: store, auditor: auditor}
+
+	server.setupRouter()
+	return server, nil
+}
+
+func (server *Server) setupRouter() {
 	router := gin.Default()
 
 	router.POST("/clients/profiles", server.createClientProfile)
-	router.GET("/clients/profiles/:id", server.getClientProfile)
+	router.POST("/clients/login", server.createClientToken)
+	// router.POST("/tokens/renew_access", server.renewAccessToken)
+
+	authRoutes := router.Group("/").Use(authMiddleware(server.auditor))
+	authRoutes.GET("/clients/profiles", server.getClientProfile)
 
 	server.router = router
-	return server
 }
 
 // Start HTTP server

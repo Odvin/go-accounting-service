@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/google/uuid"
 )
 
 const MIN_SECRET_KEY_SIZE = 32
@@ -21,7 +22,7 @@ func CreateJWTAuditor(secretKey string) (Authenticator, error) {
 	return &JWTAuditor{secretKey}, nil
 }
 
-func (auditor *JWTAuditor) CreateToken(sub string, role string, duration time.Duration) (string, *Payload, error) {
+func (auditor *JWTAuditor) CreateToken(sub uuid.UUID, role string, duration time.Duration) (string, *Payload, error) {
 	payload, err := CreatePayload(sub, role, duration)
 	if err != nil {
 		return "", payload, err

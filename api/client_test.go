@@ -13,9 +13,187 @@ import (
 	mockdb "github.com/Odvin/go-accounting-service/db/mock"
 	db "github.com/Odvin/go-accounting-service/db/sqlc"
 	"github.com/Odvin/go-accounting-service/util"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
+
+type ClientProfileSetup struct {
+	Adm      db.AdministrativeStatus
+	Kyc      db.KycStatus
+	ID       uuid.UUID
+	Password string
+}
+
+func randomCreateClientProfileRequest() (CreateClientProfileRequest, ClientProfileSetup) {
+	password := uuid.New().String()
+
+	hashedPassword, _ := util.HashPassword(password)
+
+	req := CreateClientProfileRequest{
+		Name:     util.RandomName(),
+		Surname:  util.RandomSurname(),
+		Password: password,
+		Email:    util.RandomEmail(),
+	}
+
+	setup := ClientProfileSetup{
+		Adm:      db.AdministrativeStatusAdmActive,
+		Kyc:      db.KycStatusKycConfirmed,
+		ID:       util.RandomUUID(),
+		Password: hashedPassword,
+	}
+
+	return req, setup
+}
+
+func requireCreateClientProfileResponse(t *testing.T, body *bytes.Buffer, res CreateClientProfileResponse) {
+	data, err := io.ReadAll(body)
+	require.NoError(t, err)
+
+	var resData CreateClientProfileResponse
+	err = json.Unmarshal(data, &resData)
+	require.NoError(t, err)
+	require.Equal(t, res, resData)
+}
+
+func TestCreateClientProfile(t *testing.T) {
+
+	req, setup := randomCreateClientProfileRequest()
+
+	testCases := []struct {
+		name          string
+		body          gin.H
+		buildStubs    func(store *mockdb.MockStore)
+		checkResponse func(recorder *httptest.ResponseRecorder)
+	}{
+		{
+			name: "OK",
+			body: gin.H{
+				"name":     req.Name,
+				"surname":  req.Surname,
+				"password": req.Password,
+				"email":    req.Email,
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				arg := db.CreateClientProfileParams{
+					ID:       setup.ID,
+					Adm:      setup.Adm,
+					Kyc:      setup.Kyc,
+					Name:     req.Name,
+					Surname:  req.Surname,
+					Password: setup.Password,
+					Email:    req.Email,
+				}
+				store.EXPECT().
+					CreateClientProfile(gomock.Any(), gomock.AssignableToTypeOf(arg)).
+					Times(1).
+					Return(setup.ID, nil)
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusOK, recorder.Code)
+				requireCreateClientProfileResponse(t, recorder.Body, CreateClientProfileResponse{ID: setup.ID.String()})
+			},
+		},
+		{
+			name: "TooShortPassword",
+			body: gin.H{
+				"name":     req.Name,
+				"surname":  req.Surname,
+				"password": "123",
+				"email":    req.Email,
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					CreateClientProfile(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+		{
+			name: "InvalidEmail",
+			body: gin.H{
+				"name":     req.Name,
+				"surname":  req.Surname,
+				"password": req.Password,
+				"email":    "invalid-email",
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					CreateClientProfile(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+		{
+			name: "InternalError",
+			body: gin.H{
+				"name":     req.Name,
+				"surname":  req.Surname,
+				"password": req.Password,
+				"email":    req.Email,
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					CreateClientProfile(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(uuid.New(), sql.ErrConnDone)
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+		{
+			name: "DuplicateUsername",
+			body: gin.H{
+				"name":     req.Name,
+				"surname":  req.Surname,
+				"password": req.Password,
+				"email":    req.Email,
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					CreateClientProfile(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(uuid.New(), db.ErrUniqueViolation)
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusForbidden, recorder.Code)
+			},
+		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			store := mockdb.NewMockStore(ctrl)
+			tc.buildStubs(store)
+
+			server := newTestServer(t, store)
+			recorder := httptest.NewRecorder()
+
+			// Marshal body data to JSON
+			data, err := json.Marshal(tc.body)
+			require.NoError(t, err)
+
+			url := "/clients/profiles"
+			request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(data))
+			require.NoError(t, err)
+
+			server.router.ServeHTTP(recorder, request)
+			tc.checkResponse(recorder)
+		})
+	}
+}
 
 func TestGetClientProfile(t *testing.T) {
 	clientProfile := randomClientProfile()
@@ -79,7 +257,7 @@ func TestGetClientProfile(t *testing.T) {
 
 			tc.buildStubs(store)
 
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			url := fmt.Sprintf("/clients/profiles/%s", tc.profileID)
