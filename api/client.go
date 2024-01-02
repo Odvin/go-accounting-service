@@ -12,6 +12,28 @@ import (
 	"github.com/google/uuid"
 )
 
+type clientPublicInfo struct {
+	Name            string    `json:"name"`
+	Surname         string    `json:"surname"`
+	Email           string    `json:"email"`
+	Updated         time.Time `json:"updated"`
+	Created         time.Time `json:"created"`
+	PasswordUpdated time.Time `json:"password_updated"`
+}
+
+func ClientProfileResponse(profile db.ClientProfile) clientPublicInfo {
+	return clientPublicInfo{
+		Name:            profile.Name,
+		Surname:         profile.Surname,
+		Email:           profile.Email,
+		Updated:         profile.Updated,
+		Created:         profile.Created,
+		PasswordUpdated: profile.PasswordUpdated,
+	}
+}
+
+// ================== createClientProfile ==================
+
 type CreateClientProfileRequest struct {
 	Name     string `json:"name" binding:"required"`
 	Surname  string `json:"surname" binding:"required"`
@@ -64,40 +86,22 @@ func (server *Server) createClientProfile(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 
-type loginClientRequest struct {
+// ================== createClientToken ==================
+
+type createClientTokenRequest struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required,min=6"`
 }
 
-type loginClientResponse struct {
+type createClientTokenResponse struct {
 	SessionID          uuid.UUID        `json:"session_id"`
 	AccessToken        string           `json:"access_token"`
 	AccessTokenExpired time.Time        `json:"access_token_expired"`
 	ClientInfo         clientPublicInfo `json:"client"`
 }
 
-type clientPublicInfo struct {
-	Name            string    `json:"name"`
-	Surname         string    `json:"surname"`
-	Email           string    `json:"email"`
-	Updated         time.Time `json:"updated"`
-	Created         time.Time `json:"created"`
-	PasswordUpdated time.Time `json:"password_updated"`
-}
-
-func ClientProfileResponse(profile db.ClientProfile) clientPublicInfo {
-	return clientPublicInfo{
-		Name:            profile.Name,
-		Surname:         profile.Surname,
-		Email:           profile.Email,
-		Updated:         profile.Updated,
-		Created:         profile.Created,
-		PasswordUpdated: profile.PasswordUpdated,
-	}
-}
-
 func (server *Server) createClientToken(ctx *gin.Context) {
-	var req loginClientRequest
+	var req createClientTokenRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
@@ -129,7 +133,7 @@ func (server *Server) createClientToken(ctx *gin.Context) {
 		return
 	}
 
-	rsp := loginClientResponse{
+	rsp := createClientTokenResponse{
 		SessionID:          uuid.New(),
 		AccessToken:        accessToken,
 		AccessTokenExpired: accessPayload.Expired,
@@ -139,18 +143,9 @@ func (server *Server) createClientToken(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, rsp)
 }
 
-// type GetClientProfileRequest struct {
-// 	ID string `uri:"id" binding:"required,uuid"`
-// }
+// ================== getClientProfile ==================
 
 func (server *Server) getClientProfile(ctx *gin.Context) {
-	// var req GetClientProfileRequest
-	// if err := ctx.ShouldBindUri(&req); err != nil {
-	// 	ctx.JSON(http.StatusBadRequest, errorResponse(err))
-	// 	return
-	// }
-
-	// profileId, _ := uuid.Parse(req.ID)
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Payload)
 
