@@ -6,7 +6,7 @@ import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/Odvin/go-accounting-service/pb";
 
-message Client {
+message ClientPublicInfo {
     string name = 1;
     string surname = 2;
     string email = 3;

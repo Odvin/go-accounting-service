@@ -28,4 +28,10 @@ mock:
 migration_file:
 	migrate create -ext sql -dir db/migration -seq $(name)
 
-.PHONY: postgres createdb dropdb migrateup migratedown sqlc test server mock migration_file
+proto:
+	rm -f pb/*.go
+	protoc --proto_path=proto --go_out=pb --go_opt=paths=source_relative \
+	--go-grpc_out=pb --go-grpc_opt=paths=source_relative \
+	proto/*.proto
+
+.PHONY: postgres createdb dropdb migrateup migratedown sqlc test server mock migration_file proto
