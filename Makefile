@@ -25,4 +25,7 @@ server:
 mock:
 	mockgen -package mockdb -destination db/mock/store.go github.com/Odvin/go-accounting-service/db/sqlc Store
 
-.PHONY: postgres createdb dropdb migrateup migratedown sqlc test server mock
+migration_file:
+	migrate create -ext sql -dir db/migration -seq $(name)
+
+.PHONY: postgres createdb dropdb migrateup migratedown sqlc test server mock migration_file

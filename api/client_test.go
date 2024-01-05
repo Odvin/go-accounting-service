@@ -229,6 +229,9 @@ func TestCreateClientToken(t *testing.T) {
 					GetClientProfileByEmail(gomock.Any(), gomock.Eq(credentials.Email)).
 					Times(1).
 					Return(profile, nil)
+				store.EXPECT().
+					CreateSession(gomock.Any(), gomock.Any()).
+					Times(1)
 			},
 			checkResponse: func(recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusOK, recorder.Code)

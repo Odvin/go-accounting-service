@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -97,6 +98,8 @@ type createClientTokenResponse struct {
 	SessionID          uuid.UUID        `json:"session_id"`
 	AccessToken        string           `json:"access_token"`
 	AccessTokenExpired time.Time        `json:"access_token_expired"`
+	RefreshToken       string           `json:"refresh_token"`
+	RefreshExpired     time.Time        `json:"refresh_token_expired"`
 	ClientInfo         clientPublicInfo `json:"client"`
 }
 
@@ -133,11 +136,113 @@ func (server *Server) createClientToken(ctx *gin.Context) {
 		return
 	}
 
+	refreshToken, refreshPayload, err := server.auditor.CreateToken(
+		profile.ID,
+		util.DepositorRole,
+		server.config.RefreshTokenDuration,
+	)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	session, err := server.store.CreateSession(ctx, db.CreateSessionParams{
+		ID:      refreshPayload.ID,
+		Sub:     refreshPayload.Sub,
+		Refresh: refreshToken,
+		Agent:   ctx.Request.UserAgent(),
+		Ip:      ctx.ClientIP(),
+		Blocked: false,
+		Expires: refreshPayload.Expired,
+	})
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
 	rsp := createClientTokenResponse{
-		SessionID:          uuid.New(),
+		SessionID:          session.ID,
 		AccessToken:        accessToken,
 		AccessTokenExpired: accessPayload.Expired,
+		RefreshToken:       session.Refresh,
+		RefreshExpired:     session.Expires,
 		ClientInfo:         ClientProfileResponse(profile),
+	}
+
+	ctx.JSON(http.StatusOK, rsp)
+}
+
+// ================== refreshClientToken ==================
+
+type refreshClientTokenRequest struct {
+	RefreshToken string `json:"refresh_token" binding:"required"`
+}
+
+type refreshClientTokenResponse struct {
+	AccessToken          string    `json:"access_token"`
+	AccessTokenExpiresAt time.Time `json:"access_token_expires_at"`
+}
+
+func (server *Server) refreshClientToken(ctx *gin.Context) {
+	var req refreshClientTokenRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	refreshPayload, err := server.auditor.VerifyToken(req.RefreshToken)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
+
+	session, err := server.store.GetSession(ctx, refreshPayload.ID)
+	if err != nil {
+		if errors.Is(err, db.ErrRecordNotFound) {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	if session.Blocked {
+		err := fmt.Errorf("blocked session")
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
+
+	if session.Sub != refreshPayload.Sub {
+		err := fmt.Errorf("incorrect session user")
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
+
+	if session.Refresh != req.RefreshToken {
+		err := fmt.Errorf("mismatched session token")
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
+
+	if time.Now().After(session.Expires) {
+		err := fmt.Errorf("expired session")
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
+
+	accessToken, accessPayload, err := server.auditor.CreateToken(
+		refreshPayload.Sub,
+		refreshPayload.Role,
+		server.config.AccessTokenDuration,
+	)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	rsp := refreshClientTokenResponse{
+		AccessToken:          accessToken,
+		AccessTokenExpiresAt: accessPayload.Expired,
 	}
 
 	ctx.JSON(http.StatusOK, rsp)

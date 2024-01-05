@@ -117,3 +117,14 @@ type ClientProfile struct {
 	Email           string    `json:"email"`
 	PasswordUpdated time.Time `json:"password_updated"`
 }
+
+type ClientSession struct {
+	ID      uuid.UUID `json:"id"`
+	Sub     uuid.UUID `json:"sub"`
+	Refresh string    `json:"refresh"`
+	Agent   string    `json:"agent"`
+	Ip      string    `json:"ip"`
+	Blocked bool      `json:"blocked"`
+	Expires time.Time `json:"expires"`
+	Created time.Time `json:"created"`
+}
